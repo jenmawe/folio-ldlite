@@ -3,7 +3,8 @@
 SELECT 
 	COUNT(DISTINCT sm.srs_id) AS title_count, --Count of all srs bib uuids that have a bibliographic level or LDR position 7 for monographs
 	COUNT(DISTINCT it.id) AS item_count, --Count of all item uuids that have a bibliographic level or LDR position 7 for monographs
-	lt.name AS location_name --Name of the location from the inventory.location_t table
+	lt.name AS location_name, --Name of the location from the inventory.location_t TABLE
+	lt.code AS location_code --Code OF the LOCATION FROM inventory.location_t table
 FROM 
 	public.srs_marctab sm 
 	LEFT JOIN public.srs_marctab sm2 ON sm2.srs_id::uuid = sm.srs_id::uuid
@@ -23,6 +24,8 @@ AND
 AND 
 	(lt.name like 'MH%' or  lt.code in ('FCANI', 'FCDPS', 'FCDPM')) --Looks FOR names that BEGIN WITH MH WHERE PERCENT sign IS the wildcard AND SPECIFIC codes
 GROUP BY 
-	ROLLUP(lt.name) --This will provide a total count AT the bottom
-ORDER BY 
-	lt.name ;
+	ROLLUP(lt.name, lt.code) --This will provide a total count AT the bottom
+HAVING 
+	(lt.name is null and lt.code is null) or (lt.name is not null and lt.code is not null)
+ORDER BY
+	lt.code ;
